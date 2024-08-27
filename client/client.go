@@ -31,11 +31,18 @@ func NewGcOpenApi(conf GcOpenApi, isProd bool) *GcOpenApi {
 	return &conf
 }
 
-// ExecApi 执行API请求
-func (api *GcOpenApi) ExecApi(pkg, class string, inParam map[string]interface{}) (map[string]interface{}, error) {
-	inParam["package"] = pkg
-	inParam["class"] = class
-	return api.transmit(inParam)
+// ApiRequest 用于封装 API 请求的参数
+type ApiRequest struct {
+	Package string
+	Class   string
+	Params  map[string]interface{}
+}
+
+// ExecApi 执行API请求，接收 ApiRequest 结构体作为参数
+func (api *GcOpenApi) ExecApi(req ApiRequest) (map[string]interface{}, error) {
+	req.Params["package"] = req.Package
+	req.Params["class"] = req.Class
+	return api.transmit(req.Params)
 }
 
 // 数据传输层
