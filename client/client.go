@@ -20,18 +20,15 @@ type GcOpenApi struct {
 	SecretKey string
 }
 
-// NewGcOpenApi 初始化构造函数
-func NewGcOpenApi(accessKey, secretKey string, isProd bool) *GcOpenApi {
+// NewGcOpenApi 初始化构造函数，接收 GcOpenApi struct 和 isProd 作为参数
+func NewGcOpenApi(conf GcOpenApi, isProd bool) *GcOpenApi {
 	baseURL := "http://dev-gapis-base.igancao.com/oapi"
 	if isProd {
 		baseURL = "https://gapis-base-outer.igancao.com/oapi"
 	}
 
-	return &GcOpenApi{
-		AccessKey: accessKey,
-		SecretKey: secretKey,
-		Url:       baseURL,
-	}
+	conf.Url = baseURL
+	return &conf
 }
 
 // ExecApi 执行API请求
