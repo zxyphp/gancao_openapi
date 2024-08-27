@@ -31,18 +31,11 @@ func NewGcOpenApi(conf GcOpenApi, isProd bool) *GcOpenApi {
 	return &conf
 }
 
-// ApiRequest 用于封装 API 请求的参数
-type ApiRequest struct {
-	Package string
-	Class   string
-	Params  map[string]interface{}
-}
-
-// ExecApi 执行API请求，接收 ApiRequest 结构体作为参数
-func (api *GcOpenApi) ExecApi(req ApiRequest) (map[string]interface{}, error) {
-	req.Params["package"] = req.Package
-	req.Params["class"] = req.Class
-	return api.transmit(req.Params)
+// ExecApi 执行API请求
+func (api *GcOpenApi) ExecApi(pkg, class string, inParam map[string]interface{}) (map[string]interface{}, error) {
+	inParam["package"] = pkg
+	inParam["class"] = class
+	return api.transmit(inParam)
 }
 
 // 数据传输层
@@ -113,13 +106,10 @@ func (api *GcOpenApi) encrypt(data, key string) (string, error) {
 		return "", err
 	}
 
-	aesGCM, err := cipher.NewGCM(block)
-	if err != nil {
-		return "", err
-	}
+	ciphertext := make([]byte, len(data))
+	ecb := newECBEncrypter(block)
+	ecb.CryptBlocks(ciphertext, []byte(data))
 
-	nonce := api.randomString(aesGCM.NonceSize())
-	ciphertext := aesGCM.Seal(nil, []byte(nonce), []byte(data), nil)
 	return base64.StdEncoding.EncodeToString(ciphertext), nil
 }
 
@@ -130,33 +120,65 @@ func (api *GcOpenApi) decrypt(data, key string) (string, error) {
 		return "", err
 	}
 
-	aesGCM, err := cipher.NewGCM(block)
-	if err != nil {
-		return "", err
-	}
-
 	encryptedData, err := base64.StdEncoding.DecodeString(data)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("base64 decode error: %v", err)
 	}
 
-	nonceSize := aesGCM.NonceSize()
-	if len(encryptedData) < nonceSize {
-		return "", fmt.Errorf("encrypted data too short")
-	}
+	ciphertext := make([]byte, len(encryptedData))
+	ecb := newECBDecrypter(block)
+	ecb.CryptBlocks(ciphertext, encryptedData)
 
-	nonce, ciphertext := encryptedData[:nonceSize], encryptedData[nonceSize:]
-	plaintext, err := aesGCM.Open(nil, []byte(nonce), ciphertext, nil)
-	if err != nil {
-		return "", err
-	}
-
-	return string(plaintext), nil
+	return string(ciphertext), nil
 }
 
 // 新建 AES Cipher Block
 func newCipherBlock(key string) (cipher.Block, error) {
 	return aes.NewCipher([]byte(key[:16]))
+}
+
+// ECB加密器
+type ecbEncrypter struct {
+	b cipher.Block
+}
+
+func newECBEncrypter(b cipher.Block) cipher.BlockMode {
+	return &ecbEncrypter{b}
+}
+
+func (x *ecbEncrypter) BlockSize() int { return x.b.BlockSize() }
+
+func (x *ecbEncrypter) CryptBlocks(dst, src []byte) {
+	if len(src)%x.BlockSize() != 0 {
+		panic("crypto/aes: input not full blocks")
+	}
+	for len(src) > 0 {
+		x.b.Encrypt(dst, src[:x.BlockSize()])
+		src = src[x.BlockSize():]
+		dst = dst[x.BlockSize():]
+	}
+}
+
+// ECB解密器
+type ecbDecrypter struct {
+	b cipher.Block
+}
+
+func newECBDecrypter(b cipher.Block) cipher.BlockMode {
+	return &ecbDecrypter{b}
+}
+
+func (x *ecbDecrypter) BlockSize() int { return x.b.BlockSize() }
+
+func (x *ecbDecrypter) CryptBlocks(dst, src []byte) {
+	if len(src)%x.BlockSize() != 0 {
+		panic("crypto/aes: input not full blocks")
+	}
+	for len(src) > 0 {
+		x.b.Decrypt(dst, src[:x.BlockSize()])
+		src = src[x.BlockSize():]
+		dst = dst[x.BlockSize():]
+	}
 }
 
 // 获取随机字符串
