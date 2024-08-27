@@ -1,2 +1,2 @@
 # gancao_openapi
-甘草开方平台sdk
+甘草开放平台sdk
