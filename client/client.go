@@ -3,7 +3,7 @@ package client
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/zxyphp/gancao_openapi/src/tool"
+	"github.com/zxyphp/gancao_openapi/tool"
 	"io/ioutil"
 	"net/http"
 	"strings"
