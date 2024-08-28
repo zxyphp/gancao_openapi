@@ -10,31 +10,6 @@ import (
 	"time"
 )
 
-type Res struct {
-	State int    `json:"state"`
-	Msg   string `json:"msg"`
-	Body  struct {
-		Result struct {
-			Name                string `json:"name"`
-			Age                 int    `json:"age"`
-			UserAgentVer        string `json:"user_agent_ver"`
-			UserAgentAppname    string `json:"user_agent_appname"`
-			UserAgentClientType string `json:"user_agent_client_type"`
-			UserAgent           string `json:"user_agent"`
-			UserIp              string `json:"user_ip"`
-			Img                 []struct {
-				Site int    `json:"site"`
-				File string `json:"file"`
-			} `json:"img"`
-		} `json:"result"`
-		Status struct {
-			Code    string `json:"code"`
-			Msg     string `json:"msg"`
-			Runtime int    `json:"runtime"`
-		} `json:"status"`
-	} `json:"body"`
-}
-
 // GcOpenApi 结构体定义
 type GcOpenApi struct {
 	Url       string
