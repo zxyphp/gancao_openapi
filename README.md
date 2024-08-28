@@ -20,7 +20,6 @@ $ go get -u github.com/zxyphp/gancao_openapi
 ## 快速使用
 
 * GcOpenApi 初始化账户配置结构体
-* 
 ```go
 // GcOpenApi 结构体定义
 client.GcOpenApi struct {
@@ -45,8 +44,8 @@ client.ApiRequest struct {
 
 // 初始化 GcOpenApi 配置
 apiConfig := client.GcOpenApi{
-AccessKey: "OU022B11I095379K7",
-SecretKey: "46cb91b0f20c3e19",
+  AccessKey: "OU022B11I095379K7",
+  SecretKey: "46cb91b0f20c3e19",
 }
 
 // 创建生产环境的 API 客户端，区分环境
